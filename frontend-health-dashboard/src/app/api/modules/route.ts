@@ -14,3 +14,33 @@ export async function GET() {
     );
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+
+    if (!body.name || !body.team || !body.description) {
+      return NextResponse.json(
+        { error: "name, team and description are required" },
+        { status: 400 }
+      );
+    }
+
+    const newModule = await db
+      .insert(modules)
+      .values({
+        name: body.name,
+        team: body.team,
+        description: body.description,
+      })
+      .returning();
+
+    return NextResponse.json(newModule[0], { status: 201 });
+  } catch (error) {
+    console.error("Failed to create module:", error);
+    return NextResponse.json(
+      { error: "Failed to create module" },
+      { status: 500 }
+    );
+  }
+}

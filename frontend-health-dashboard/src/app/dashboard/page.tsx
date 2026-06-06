@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import MetricCard from "@/components/metrics/MetricCard";
 import DashboardFilters from "@/components/metrics/DashboardFilters";
 import ThemeToggle from "@/components/ui/themeToggle";
+import AddModuleModal from "@/components/metrics/AddModuleModal";
 import { Module, Metric } from "@/types/metrics";
 import { getHealthStatus } from "@/lib/utils";
 import { Suspense } from "react";
@@ -33,18 +34,16 @@ export default async function DashboardPage({
     }),
   );
 
-  const filtered = modulesWithMetrics.filter(({ module, latestMetric }) => {
-    if (!latestMetric) return false;
-
+ const filtered = modulesWithMetrics.filter(({ module, latestMetric }) => {
     const matchesSearch = search
       ? module.name.toLowerCase().includes(search.toLowerCase())
       : true;
 
     const matchesTeam = team ? module.team === team : true;
 
-    const matchesStatus = status
+    const matchesStatus = status && latestMetric
       ? getHealthStatus(latestMetric) === status
-      : true;
+      : !status;
 
     return matchesSearch && matchesTeam && matchesStatus;
   });
@@ -53,6 +52,7 @@ export default async function DashboardPage({
     <main className="p-6 max-w-7xl mx-auto">
       <div className="flex gap-2">
         <ThemeToggle />
+        <AddModuleModal />
         <a
           href="/dashboard/alerts"
           className="text-sm border rounded-lg px-4 py-2 hover:bg-muted transition-colors"
