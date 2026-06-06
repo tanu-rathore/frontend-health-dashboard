@@ -3,6 +3,7 @@ import { modules, metrics } from "@/lib/schema";
 import { desc, eq } from "drizzle-orm";
 import MetricCard from "@/components/metrics/MetricCard";
 import DashboardFilters from "@/components/metrics/DashboardFilters";
+import ThemeToggle from "@/components/ui/themeToggle";
 import { Module, Metric } from "@/types/metrics";
 import { getHealthStatus } from "@/lib/utils";
 import { Suspense } from "react";
@@ -51,6 +52,7 @@ export default async function DashboardPage({
   return (
     <main className="p-6 max-w-7xl mx-auto">
       <div className="flex gap-2">
+        <ThemeToggle />
         <a
           href="/dashboard/alerts"
           className="text-sm border rounded-lg px-4 py-2 hover:bg-muted transition-colors"
