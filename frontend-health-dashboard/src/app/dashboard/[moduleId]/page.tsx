@@ -11,6 +11,7 @@ import ErrorBoundary from "@/components/metrics/ErrorBoundary";
 import Link from "next/link";
 import DeleteModuleButton from "@/components/metrics/DeleteModuleButton";
 import AddMetricModal from "@/components/metrics/AddMetricModal";
+import ExportButton from "@/components/metrics/ExportButton";
 
 export default async function ModuleDetailPage({
   params,
@@ -36,7 +37,7 @@ export default async function ModuleDetailPage({
 
   const mod = moduleData[0] as Module;
   const latest = latestMetrics[0] as Metric | undefined;
-  const status = latest ? getHealthStatus(latest) : "healthy" as HealthStatus;
+  const status = latest ? getHealthStatus(latest) : ("healthy" as HealthStatus);
 
   return (
     <main className="p-6 max-w-5xl mx-auto">
@@ -52,7 +53,10 @@ export default async function ModuleDetailPage({
             <h1 className="text-2xl font-semibold">{mod.name}</h1>
             <Badge className={`border ${getStatusBg(status)}`}>{status}</Badge>
           </div>
-          <DeleteModuleButton moduleId={mod.id} moduleName={mod.name} />
+          <div className="flex items-center gap-2">
+            {latest && <ExportButton moduleId={mod.id} moduleName={mod.name} />}
+            <DeleteModuleButton moduleId={mod.id} moduleName={mod.name} />
+          </div>
         </div>
         <p className="text-muted-foreground mt-1">
           {mod.team} · {mod.description}
