@@ -29,10 +29,9 @@ export default async function DashboardPage({
         module: mod as Module,
         latestMetric: latestMetrics[0] as Metric,
       };
-    })
+    }),
   );
 
-  // Apply filters
   const filtered = modulesWithMetrics.filter(({ module, latestMetric }) => {
     if (!latestMetric) return false;
 
@@ -51,11 +50,19 @@ export default async function DashboardPage({
 
   return (
     <main className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold">Frontend Health Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
-          Monitoring {allModules.length} modules across all teams
-        </p>
+      <div className="flex gap-2">
+        <a
+          href="/dashboard/alerts"
+          className="text-sm border rounded-lg px-4 py-2 hover:bg-muted transition-colors"
+        >
+          Alerts →
+        </a>
+        <a
+          href="/dashboard/compare"
+          className="text-sm border rounded-lg px-4 py-2 hover:bg-muted transition-colors"
+        >
+          Compare Modules →
+        </a>
       </div>
 
       <Suspense fallback={null}>
