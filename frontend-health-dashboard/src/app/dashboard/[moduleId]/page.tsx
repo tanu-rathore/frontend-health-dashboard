@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import MetricChart from "@/components/metrics/metricChart";
 import { Module, Metric } from "@/types/metrics";
 import { getHealthStatus, getStatusBg } from "@/lib/utils";
+import ErrorBoundary from "@/components/metrics/ErrorBoundary";
 import Link from "next/link";
 
 export default async function ModuleDetailPage({
@@ -52,8 +53,6 @@ export default async function ModuleDetailPage({
           {mod.team} · {mod.description}
         </p>
       </div>
-
-      {/* Latest metrics summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
           { label: "Bundle Size", value: `${latest.bundleSizeKb} kb` },
@@ -69,65 +68,71 @@ export default async function ModuleDetailPage({
           </Card>
         ))}
       </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <ErrorBoundary>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">Bundle Size (kb)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <MetricChart
+          moduleId={moduleId}
+          metric="bundleSizeKb"
+          color="#6366f1"
+          label="30-day trend"
+        />
+      </CardContent>
+    </Card>
+  </ErrorBoundary>
 
-      {/* 30-day charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Bundle Size (kb)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MetricChart
-              moduleId={moduleId}
-              metric="bundleSizeKb"
-              color="#6366f1"
-              label="30-day trend"
-            />
-          </CardContent>
-        </Card>
+  <ErrorBoundary>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">Render Time (ms)</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <MetricChart
+          moduleId={moduleId}
+          metric="renderTimeMs"
+          color="#f59e0b"
+          label="30-day trend"
+        />
+      </CardContent>
+    </Card>
+  </ErrorBoundary>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Render Time (ms)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MetricChart
-              moduleId={moduleId}
-              metric="renderTimeMs"
-              color="#f59e0b"
-              label="30-day trend"
-            />
-          </CardContent>
-        </Card>
+  <ErrorBoundary>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">Lighthouse Score</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <MetricChart
+          moduleId={moduleId}
+          metric="lighthouseScore"
+          color="#10b981"
+          label="30-day trend"
+        />
+      </CardContent>
+    </Card>
+  </ErrorBoundary>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">Lighthouse Score</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MetricChart
-              moduleId={moduleId}
-              metric="lighthouseScore"
-              color="#10b981"
-              label="30-day trend"
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm">CLS Score</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <MetricChart
-              moduleId={moduleId}
-              metric="clsScore"
-              color="#ef4444"
-              label="30-day trend"
-            />
-          </CardContent>
-        </Card>
-      </div>
+  <ErrorBoundary>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm">CLS Score</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <MetricChart
+          moduleId={moduleId}
+          metric="clsScore"
+          color="#ef4444"
+          label="30-day trend"
+        />
+      </CardContent>
+    </Card>
+  </ErrorBoundary>
+</div>
     </main>
   );
 }
