@@ -19,7 +19,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const TEAMS = ["Commerce", "Platform", "Discovery", "Growth", "Analytics", "DevEx"];
+const TEAMS = [
+  "Commerce",
+  "Platform",
+  "Discovery",
+  "Growth",
+  "Analytics",
+  "DevEx",
+];
 
 export default function AddModuleModal() {
   const router = useRouter();
@@ -85,12 +92,14 @@ export default function AddModuleModal() {
               Team
             </label>
             <Select value={team} onValueChange={setTeam}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select team" />
               </SelectTrigger>
               <SelectContent>
                 {TEAMS.map((t) => (
-                  <SelectItem key={t} value={t}>{t}</SelectItem>
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -105,14 +114,9 @@ export default function AddModuleModal() {
               onChange={(e) => setDescription(e.target.value)}
             />
           </div>
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
           <div className="flex justify-end gap-2 pt-2">
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSubmit} disabled={saving}>
