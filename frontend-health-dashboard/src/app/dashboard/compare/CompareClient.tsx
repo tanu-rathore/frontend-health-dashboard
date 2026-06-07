@@ -145,7 +145,11 @@ export default function CompareClient({ modules }: CompareClientProps) {
           </SelectTrigger>
           <SelectContent>
             {modules.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
+              <SelectItem
+                key={m.id}
+                value={m.id}
+                disabled={moduleB?.id === m.id}
+              >
                 {m.name}
               </SelectItem>
             ))}
@@ -166,7 +170,11 @@ export default function CompareClient({ modules }: CompareClientProps) {
           </SelectTrigger>
           <SelectContent>
             {modules.map((m) => (
-              <SelectItem key={m.id} value={m.id}>
+              <SelectItem
+                key={m.id}
+                value={m.id}
+                disabled={moduleA?.id === m.id}
+              >
                 {m.name}
               </SelectItem>
             ))}
