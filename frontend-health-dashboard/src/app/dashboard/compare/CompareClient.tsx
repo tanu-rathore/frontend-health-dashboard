@@ -27,7 +27,7 @@ function ModuleColumn({ module }: { module: Module }) {
 
   return (
     <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-2">
         <h2 className="text-lg font-semibold">{module.name}</h2>
         {status && (
           <Badge className={`border text-xs ${getStatusBg(status)}`}>
@@ -62,7 +62,11 @@ function ModuleColumn({ module }: { module: Module }) {
             </Card>
           ))}
         </div>
-      ) : null}
+      ) : (
+        <div className="text-sm text-muted-foreground mb-6 p-4 border rounded-lg text-center">
+          No metrics available
+        </div>
+      )}
 
       {/* Charts */}
       <div className="space-y-4">
@@ -130,25 +134,41 @@ export default function CompareClient({ modules }: CompareClientProps) {
   return (
     <div>
       {/* Module selectors */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <Select onValueChange={(id) => setModuleA(modules.find((m) => m.id === id) ?? null)}>
+      <div className="flex flex-col sm:flex-row gap-4 mb-8 items-center justify-center">
+        <Select
+          onValueChange={(id) =>
+            setModuleA(modules.find((m) => m.id === id) ?? null)
+          }
+        >
           <SelectTrigger className="sm:w-64">
             <SelectValue placeholder="Select first module" />
           </SelectTrigger>
           <SelectContent>
             {modules.map((m) => (
-              <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+              <SelectItem key={m.id} value={m.id}>
+                {m.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Select onValueChange={(id) => setModuleB(modules.find((m) => m.id === id) ?? null)}>
+        <div className="text-muted-foreground font-semibold text-sm px-2">
+          vs
+        </div>
+
+        <Select
+          onValueChange={(id) =>
+            setModuleB(modules.find((m) => m.id === id) ?? null)
+          }
+        >
           <SelectTrigger className="sm:w-64">
             <SelectValue placeholder="Select second module" />
           </SelectTrigger>
           <SelectContent>
             {modules.map((m) => (
-              <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+              <SelectItem key={m.id} value={m.id}>
+                {m.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -174,8 +194,11 @@ export default function CompareClient({ modules }: CompareClientProps) {
           )}
         </div>
       ) : (
-        <div className="text-center py-16 text-muted-foreground">
-          Select two modules above to compare their metrics
+        <div className="text-center py-20 text-muted-foreground">
+          <p className="text-4xl mb-4">⚡</p>
+          <p className="text-sm">
+            Select two modules above to compare their metrics
+          </p>
         </div>
       )}
     </div>

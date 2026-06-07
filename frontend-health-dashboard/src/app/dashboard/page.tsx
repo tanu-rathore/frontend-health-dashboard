@@ -3,8 +3,6 @@ import { modules, metrics } from "@/lib/schema";
 import { desc, eq } from "drizzle-orm";
 import MetricCard from "@/components/metrics/MetricCard";
 import DashboardFilters from "@/components/metrics/DashboardFilters";
-import ThemeToggle from "@/components/ui/themeToggle";
-import AddModuleModal from "@/components/metrics/AddModuleModal";
 import { Module, Metric } from "@/types/metrics";
 import { getHealthStatus } from "@/lib/utils";
 import { Suspense } from "react";
@@ -56,38 +54,18 @@ export default async function DashboardPage({
   );
 
   return (
-    <main className="p-6 max-w-7xl mx-auto">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Frontend Health Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Monitoring {allModules.length} modules across all teams
-          </p>
-        </div>
-        <div className="flex gap-2 items-center">
-          <ThemeToggle />
-          <AddModuleModal />
-          <a
-            href="/dashboard/alerts"
-            className="text-sm border rounded-lg px-4 py-2 hover:bg-muted transition-colors"
-          >
-            Alerts →
-          </a>
-          <a
-            href="/dashboard/compare"
-            className="text-sm border rounded-lg px-4 py-2 hover:bg-muted transition-colors"
-          >
-            Compare →
-          </a>
-        </div>
+    <main className="max-w-7xl mx-auto px-6 py-6">
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold">Overview</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Monitoring {allModules.length} modules across all teams
+        </p>
       </div>
-
       <Suspense fallback={null}>
         <DashboardFilters />
       </Suspense>
-
       {sorted.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
+        <div className="text-center py-12 text-muted-foreground text-sm">
           No modules match your filters.
         </div>
       ) : (

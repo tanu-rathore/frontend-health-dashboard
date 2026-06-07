@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { modules } from "@/lib/schema";
+import { modules, metrics } from "@/lib/schema";
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
@@ -53,10 +53,14 @@ export async function DELETE(request: Request) {
     if (!id) {
       return NextResponse.json(
         { error: "Module id is required" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
+    // Delete metrics first to avoid foreign key constraint
+    await db.delete(metrics).where(eq(metrics.moduleId, id));
+
+    // Then delete the module
     await db.delete(modules).where(eq(modules.id, id));
 
     return NextResponse.json({ success: true });
@@ -64,7 +68,7 @@ export async function DELETE(request: Request) {
     console.error("Failed to delete module:", error);
     return NextResponse.json(
       { error: "Failed to delete module" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

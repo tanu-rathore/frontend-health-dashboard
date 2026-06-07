@@ -1,3 +1,6 @@
+import { db } from "@/lib/db";
+import { alerts } from "@/lib/schema";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export type Alert = {
@@ -9,28 +12,68 @@ export type Alert = {
   createdAt: string;
 };
 
-let alerts: Alert[] = [];
-
 export async function GET() {
-  return NextResponse.json(alerts);
+  try {
+    const allAlerts = await db.select().from(alerts);
+    return NextResponse.json(allAlerts);
+  } catch (error) {
+    console.error("Failed to fetch alerts:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch alerts" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const newAlert: Alert = {
-    id: crypto.randomUUID(),
-    moduleId: body.moduleId,
-    moduleName: body.moduleName,
-    metric: body.metric,
-    threshold: body.threshold,
-    createdAt: new Date().toISOString(),
-  };
-  alerts.push(newAlert);
-  return NextResponse.json(newAlert, { status: 201 });
+  try {
+    const body = await request.json();
+
+    if (!body.moduleId || !body.metric || !body.threshold) {
+      return NextResponse.json(
+        { error: "moduleId, metric and threshold are required" },
+        { status: 400 }
+      );
+    }
+
+    const newAlert = await db
+      .insert(alerts)
+      .values({
+        moduleId: body.moduleId,
+        moduleName: body.moduleName,
+        metric: body.metric,
+        threshold: body.threshold,
+      })
+      .returning();
+
+    return NextResponse.json(newAlert[0], { status: 201 });
+  } catch (error) {
+    console.error("Failed to create alert:", error);
+    return NextResponse.json(
+      { error: "Failed to create alert" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function DELETE(request: Request) {
-  const { id } = await request.json();
-  alerts = alerts.filter((a) => a.id !== id);
-  return NextResponse.json({ success: true });
+  try {
+    const { id } = await request.json();
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Alert id is required" },
+        { status: 400 }
+      );
+    }
+
+    await db.delete(alerts).where(eq(alerts.id, id));
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete alert:", error);
+    return NextResponse.json(
+      { error: "Failed to delete alert" },
+      { status: 500 }
+    );
+  }
 }

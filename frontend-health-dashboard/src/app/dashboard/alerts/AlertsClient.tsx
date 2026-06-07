@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Module } from "@/types/metrics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,8 @@ export default function AlertsClient({ modules }: AlertsClientProps) {
   const [metric, setMetric] = useState("");
   const [threshold, setThreshold] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const alertsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/alerts")
@@ -39,8 +41,43 @@ export default function AlertsClient({ modules }: AlertsClientProps) {
       .then(setAlerts);
   }, []);
 
+  const validate = () => {
+    if (!moduleId) {
+      setError("Please select a module");
+      return false;
+    }
+    if (!metric) {
+      setError("Please select a metric");
+      return false;
+    }
+    if (!threshold) {
+      setError("Threshold value is required");
+      return false;
+    }
+    if (parseFloat(threshold) <= 0) {
+      setError("Threshold must be greater than 0");
+      return false;
+    }
+    if (metric === "lighthouseScore" && parseFloat(threshold) > 100) {
+      setError("Lighthouse score threshold must be between 0 and 100");
+      return false;
+    }
+    if (metric === "clsScore" && parseFloat(threshold) > 1) {
+      setError("CLS score threshold must be between 0 and 1");
+      return false;
+    }
+    const duplicate = alerts.find(
+      (a) => a.moduleId === moduleId && a.metric === metric
+    );
+    if (duplicate) {
+      setError("An alert for this module and metric already exists");
+      return false;
+    }
+    return true;
+  };
+
   const handleAdd = async () => {
-    if (!moduleId || !metric || !threshold) return;
+    if (!validate()) return;
     setSaving(true);
     const mod = modules.find((m) => m.id === moduleId);
     const res = await fetch("/api/alerts", {
@@ -54,10 +91,17 @@ export default function AlertsClient({ modules }: AlertsClientProps) {
       }),
     });
     const newAlert = await res.json();
-    setAlerts((prev) => [...prev, newAlert]);
+    setAlerts((prev) => {
+      const updated = [...prev, newAlert];
+      setTimeout(() => {
+        alertsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return updated;
+    });
     setModuleId("");
     setMetric("");
     setThreshold("");
+    setError("");
     setSaving(false);
   };
 
@@ -72,39 +116,59 @@ export default function AlertsClient({ modules }: AlertsClientProps) {
 
   return (
     <div className="space-y-6">
+      {/* Add alert form */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Add New Alert</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Select value={moduleId} onValueChange={setModuleId}>
+          <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+            <Select
+              value={moduleId}
+              onValueChange={(v) => {
+                setModuleId(v);
+                setError("");
+              }}
+            >
               <SelectTrigger className="sm:w-48">
-                <SelectValue placeholder="Select module" />
+                <SelectValue placeholder="Module *" />
               </SelectTrigger>
               <SelectContent>
                 {modules.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                  <SelectItem key={m.id} value={m.id}>
+                    {m.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={metric} onValueChange={setMetric}>
+            <Select
+              value={metric}
+              onValueChange={(v) => {
+                setMetric(v);
+                setError("");
+              }}
+            >
               <SelectTrigger className="sm:w-48">
-                <SelectValue placeholder="Select metric" />
+                <SelectValue placeholder="Metric *" />
               </SelectTrigger>
               <SelectContent>
                 {METRICS.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                  <SelectItem key={m.value} value={m.value}>
+                    {m.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Input
               type="number"
-              placeholder="Threshold value"
+              placeholder="Threshold *"
               value={threshold}
-              onChange={(e) => setThreshold(e.target.value)}
+              onChange={(e) => {
+                setThreshold(e.target.value);
+                setError("");
+              }}
               className="sm:w-40"
             />
 
@@ -112,8 +176,11 @@ export default function AlertsClient({ modules }: AlertsClientProps) {
               {saving ? "Saving..." : "Add Alert"}
             </Button>
           </div>
+          {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
         </CardContent>
       </Card>
+
+      {/* CI Integration info */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">CI Integration</CardTitle>
@@ -137,11 +204,11 @@ export default function AlertsClient({ modules }: AlertsClientProps) {
       </Card>
 
       {/* Active alerts */}
-      <Card>
+      <Card ref={alertsRef}>
         <CardHeader>
-          <CardTitle className="text-base">
+          <CardTitle className="text-base flex items-center gap-2">
             Active Alerts
-            <Badge className="ml-2 text-xs">{alerts.length}</Badge>
+            <Badge className="text-xs">{alerts.length}</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -157,13 +224,21 @@ export default function AlertsClient({ modules }: AlertsClientProps) {
                   className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                 >
                   <div>
-                    <span className="text-sm font-medium">{alert.moduleName}</span>
-                    <span className="text-muted-foreground text-sm mx-2">·</span>
+                    <span className="text-sm font-medium">
+                      {alert.moduleName}
+                    </span>
+                    <span className="text-muted-foreground text-sm mx-2">
+                      ·
+                    </span>
                     <span className="text-sm text-muted-foreground">
                       {METRICS.find((m) => m.value === alert.metric)?.label}
                     </span>
-                    <span className="text-muted-foreground text-sm mx-2">·</span>
-                    <span className="text-sm">threshold: {alert.threshold}</span>
+                    <span className="text-muted-foreground text-sm mx-2">
+                      ·
+                    </span>
+                    <span className="text-sm">
+                      threshold: {alert.threshold}
+                    </span>
                   </div>
                   <Button
                     variant="ghost"

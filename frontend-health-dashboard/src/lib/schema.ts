@@ -17,3 +17,12 @@ export const metrics = pgTable("metrics", {
   clsScore: real("cls_score").notNull(),
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
+
+export const alerts = pgTable("alerts", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  moduleId: uuid("module_id").references(() => modules.id).notNull(),
+  moduleName: text("module_name").notNull(),
+  metric: text("metric").notNull(),
+  threshold: real("threshold").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

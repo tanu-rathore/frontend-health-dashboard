@@ -15,9 +15,13 @@ import { Module } from "@/types/metrics";
 
 interface AddMetricModalProps {
   module: Module;
+  iconOnly?: boolean;
 }
 
-export default function AddMetricModal({ module }: AddMetricModalProps) {
+export default function AddMetricModal({
+  module,
+  iconOnly = false,
+}: AddMetricModalProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [bundleSizeKb, setBundleSizeKb] = useState("");
@@ -27,15 +31,34 @@ export default function AddMetricModal({ module }: AddMetricModalProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
+  const validate = () => {
     if (!bundleSizeKb || !renderTimeMs || !lighthouseScore || !clsScore) {
       setError("All fields are required");
-      return;
+      return false;
     }
+    if (parseFloat(bundleSizeKb) <= 0) {
+      setError("Bundle size must be greater than 0");
+      return false;
+    }
+    if (parseFloat(renderTimeMs) <= 0) {
+      setError("Render time must be greater than 0");
+      return false;
+    }
+    if (parseFloat(lighthouseScore) < 0 || parseFloat(lighthouseScore) > 100) {
+      setError("Lighthouse score must be between 0 and 100");
+      return false;
+    }
+    if (parseFloat(clsScore) < 0 || parseFloat(clsScore) > 1) {
+      setError("CLS score must be between 0 and 1");
+      return false;
+    }
+    return true;
+  };
 
+  const handleSubmit = async () => {
+    if (!validate()) return;
     setSaving(true);
     setError("");
-
     try {
       const res = await fetch("/api/metrics", {
         method: "POST",
@@ -48,9 +71,7 @@ export default function AddMetricModal({ module }: AddMetricModalProps) {
           clsScore: parseFloat(clsScore),
         }),
       });
-
       if (!res.ok) throw new Error("Failed to add metric");
-
       setOpen(false);
       setBundleSizeKb("");
       setRenderTimeMs("");
@@ -68,9 +89,15 @@ export default function AddMetricModal({ module }: AddMetricModalProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full mt-3">
-          + Add Metric
-        </Button>
+        {iconOnly ? (
+          <button className="w-6 h-6 rounded-full bg-muted hover:bg-primary hover:text-primary-foreground transition-colors flex items-center justify-center text-sm font-medium">
+            +
+          </button>
+        ) : (
+          <Button variant="outline" size="sm" className="w-full mt-3">
+            + Add Metric
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -80,7 +107,7 @@ export default function AddMetricModal({ module }: AddMetricModalProps) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-sm text-muted-foreground mb-1 block">
-                Bundle Size (kb)
+                Bundle Size (kb) <span className="text-red-500">*</span>
               </label>
               <Input
                 type="number"
@@ -91,7 +118,7 @@ export default function AddMetricModal({ module }: AddMetricModalProps) {
             </div>
             <div>
               <label className="text-sm text-muted-foreground mb-1 block">
-                Render Time (ms)
+                Render Time (ms) <span className="text-red-500">*</span>
               </label>
               <Input
                 type="number"
@@ -102,22 +129,29 @@ export default function AddMetricModal({ module }: AddMetricModalProps) {
             </div>
             <div>
               <label className="text-sm text-muted-foreground mb-1 block">
-                Lighthouse Score
+                Lighthouse Score <span className="text-red-500">*</span>
+                <span className="text-xs ml-1">(0–100)</span>
               </label>
               <Input
                 type="number"
                 placeholder="e.g. 92"
+                min={0}
+                max={100}
                 value={lighthouseScore}
                 onChange={(e) => setLighthouseScore(e.target.value)}
               />
             </div>
             <div>
               <label className="text-sm text-muted-foreground mb-1 block">
-                CLS Score
+                CLS Score <span className="text-red-500">*</span>
+                <span className="text-xs ml-1">(0–1)</span>
               </label>
               <Input
                 type="number"
                 placeholder="e.g. 0.05"
+                min={0}
+                max={1}
+                step={0.01}
                 value={clsScore}
                 onChange={(e) => setClsScore(e.target.value)}
               />
